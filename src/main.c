@@ -1,12 +1,17 @@
 /*
- * Copyright (c) 2016 Intel Corporation
- *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
 #include <zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
+
+#include <inttypes.h>
+#include <zephyr/logging/log.h>
+
+#include "config.h"
+
+#define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
+LOG_MODULE_REGISTER(main);
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   1000
