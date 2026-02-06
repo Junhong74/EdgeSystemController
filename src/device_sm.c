@@ -29,6 +29,8 @@ state_t fsm_get_previous_state(void)
 // State transition function
 void fsm_event_handler(event_t event) 
 {
+    previous_state = current_state;
+    
     switch (current_state) {
         case INIT:
             if (event == EVENT_INIT_DONE) {
@@ -114,9 +116,11 @@ void fsm_event_handler(event_t event)
                 LOG_INF("Transition: FAULT -> IDLE");
             }
             break;
+        case SHUTDOWN:
+            // No transitions out of SHUTDOWN in this simple model
+            break;
         default:
             LOG_INF("Unknown state: %d", current_state);
             break;
     }
-    previous_state = current_state;
 }
