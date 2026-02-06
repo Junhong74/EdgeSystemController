@@ -29,6 +29,8 @@ state_t fsm_get_previous_state(void)
 // State transition function
 void fsm_event_handler(event_t event) 
 {
+    previous_state = current_state;
+    
     switch (current_state) {
         case INIT:
             if (event == EVENT_INIT_DONE) {
@@ -115,15 +117,10 @@ void fsm_event_handler(event_t event)
             }
             break;
         case SHUTDOWN:
-            // SHUTDOWN is a terminal state - no transitions out
-            // Recovery requires a full system restart (power cycle or hardware reset)
-            // This design prevents accidental recovery from a commanded shutdown,
-            // which is critical for safety in autonomous drone/robotics systems
             LOG_INF("System in SHUTDOWN state - restart required");
             break;
         default:
             LOG_INF("Unknown state: %d", current_state);
             break;
     }
-    previous_state = current_state;
 }
