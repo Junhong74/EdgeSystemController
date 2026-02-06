@@ -4,11 +4,12 @@
 
 #include <stdio.h>
 #include <zephyr/kernel.h>
-
+#include <zephyr/drivers/gpio.h>
 #include <inttypes.h>
 #include <zephyr/logging/log.h>
 
 #include "config.h"
+#include "device_sm.h"
 
 #define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
 LOG_MODULE_REGISTER(main);
@@ -30,6 +31,11 @@ int main(void)
 	int ret;
 	bool led_state = true;
 
+	fsm_init();
+	LOG_INF("EAI-SC: Application Started");
+	fsm_event_handler(EVENT_INIT_DONE);
+
+
 	if (!gpio_is_ready_dt(&led)) {
 		return 0;
 	}
@@ -49,5 +55,6 @@ int main(void)
 		printf("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
 	}
+
 	return 0;
 }
