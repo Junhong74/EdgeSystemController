@@ -114,6 +114,13 @@ void fsm_event_handler(event_t event)
                 LOG_INF("Transition: FAULT -> IDLE");
             }
             break;
+        case SHUTDOWN:
+            // SHUTDOWN is a terminal state - no transitions out
+            // Recovery requires a full system restart (power cycle or hardware reset)
+            // This design prevents accidental recovery from a commanded shutdown,
+            // which is critical for safety in autonomous drone/robotics systems
+            LOG_INF("System in SHUTDOWN state - restart required");
+            break;
         default:
             LOG_INF("Unknown state: %d", current_state);
             break;
