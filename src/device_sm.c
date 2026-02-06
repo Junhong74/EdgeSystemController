@@ -117,7 +117,7 @@ void fsm_event_handler(event_t event)
             }
             break;
         case SHUTDOWN:
-            // No transitions out of SHUTDOWN in this simple model
+            LOG_INF("System in SHUTDOWN state - restart required");
             break;
         default:
             LOG_INF("Unknown state: %d", current_state);
