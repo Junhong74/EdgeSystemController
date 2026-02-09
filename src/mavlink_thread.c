@@ -67,11 +67,30 @@ void mavlink_thread(void *p1, void *p2, void *p3)
             cmd.command = CMD_START;
             cmd.param = 0;
             
-            /* Attempt to put command in queue with error handling */
-            if (k_msgq_put(&sys_cmd_queue, &cmd, K_NO_WAIT) != 0) {
-                /* Queue full - log error as commands should not be silently dropped */
-                LOG_ERR("sys_cmd_queue full (capacity=%d) - command 0x%02x dropped", 
+            /* Attempt to put command in queue with retry strategy */
+            int ret = k_msgq_put(&sys_cmd_queue, &cmd, K_NO_WAIT);
+            if (ret != 0) {
+                /* Queue full - retry with timeout to allow consumer to drain */
+                LOG_WRN("sys_cmd_queue full (capacity=%d), retrying command 0x%02x", 
                         SYS_CMD_QUEUE_SIZE, cmd.command);
+                
+                /* Retry with short timeout (up to 3 attempts with 10ms between) */
+                const int max_retries = 3;
+                const k_timeout_t retry_timeout = K_MSEC(10);
+                
+                for (int retry = 0; retry < max_retries && ret != 0; retry++) {
+                    ret = k_msgq_put(&sys_cmd_queue, &cmd, retry_timeout);
+                    if (ret != 0 && retry < max_retries - 1) {
+                        LOG_WRN("sys_cmd_queue retry %d/%d failed for command 0x%02x",
+                                retry + 1, max_retries, cmd.command);
+                    }
+                }
+                
+                /* If all retries failed, log critical error */
+                if (ret != 0) {
+                    LOG_ERR("sys_cmd_queue: command 0x%02x DROPPED after %d retries - system may be unresponsive",
+                            cmd.command, max_retries);
+                }
             }
         }
 
