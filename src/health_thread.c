@@ -45,15 +45,22 @@ void health_thread(void *p1, void *p2, void *p3)
         
         bool all_healthy = true;
         
+        // Atomic snapshot ensures consistent view of all counters
+        atomic_val_t mavlink_hb = atomic_get(&g_health.mavlink_heartbeat);
+        atomic_val_t last_mavlink_hb = atomic_get(&last_health.mavlink_heartbeat);  
+        
         /* Check MAVLink thread */
-        if (g_health.mavlink_heartbeat == last_health.mavlink_heartbeat) {
+        if (mavlink_hb == last_mavlink_hb) {
             LOG_ERR("[Health] ERROR: MAVLink thread HUNG!");
             all_healthy = false;
         }
+
+        atomic_val_t sys_mgr_hb = atomic_get(&g_health.sys_mgr_heartbeat);
+        atomic_val_t last_sys_mgr_hb = atomic_get(&last_health.sys_mgr_heartbeat);
         
         /* Check SysMgr thread */
-        if (g_health.sys_mgr_heartbeat == last_health.sys_mgr_heartbeat) {
-            LOG_ERR("[Health] ERROR: SysMgr thread HUNG!");
+        if (sys_mgr_hb == last_sys_mgr_hb) {
+            LOG_ERR("[Health] ERROR: Sys_Mgr thread HUNG!");
             all_healthy = false;
         }
         
@@ -68,8 +75,8 @@ void health_thread(void *p1, void *p2, void *p3)
         } else {
             /* Periodic status report (every 10 checks = 5 seconds) */
             if (check_count % 10 == 0) {
-                printk("[Health] All threads OK (check #%u)\n", check_count);
-                printk("[Health]   MAVLink: %u, SysMgr: %u\n",
+                LOG_INF("[Health] All threads OK (check #%u)", check_count);
+                LOG_INF("[Health]   MAVLink: %u, SysMgr: %u",
                        g_health.mavlink_heartbeat,
                        g_health.sys_mgr_heartbeat);
             }
