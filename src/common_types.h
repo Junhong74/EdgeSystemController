@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <zephyr/sys/atomic.h>
 #include "system_config.h"
 
 /**
@@ -44,8 +45,8 @@ typedef struct {
 
 /* Thread Heartbeat Structure */
 typedef struct {
-    uint32_t mavlink_heartbeat;
-    uint32_t sys_mgr_heartbeat;
+    atomic_t mavlink_heartbeat;
+    atomic_t sys_mgr_heartbeat;
 } thread_health_t;
 
 /* Thread IDs for health monitoring */

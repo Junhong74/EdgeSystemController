@@ -47,8 +47,8 @@ void sys_mgr_thread(void *p1, void *p2, void *p3)
     LOG_INF("System initialized - entering IDLE state");
 
     while (1) {
-        /* Update heartbeat */
-        g_health.sys_mgr_heartbeat++;
+        /* Update heartbeat atomically */
+        atomic_inc(&g_health.sys_mgr_heartbeat);
 
         /* Process commands from other threads */
         ret = k_msgq_get(&sys_cmd_queue, &cmd, K_MSEC(100));

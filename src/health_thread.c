@@ -25,7 +25,10 @@ LOG_MODULE_REGISTER(health_thread);
  */
 void health_thread(void *p1, void *p2, void *p3)
 {
-    static thread_health_t last_health = {0};
+    uint32_t last_mavlink_heartbeat = 0;
+    uint32_t last_sys_mgr_heartbeat = 0;
+    uint32_t current_mavlink_heartbeat;
+    uint32_t current_sys_mgr_heartbeat;
     sys_command_t error_cmd;
     uint32_t check_count = 0;
     
@@ -43,14 +46,18 @@ void health_thread(void *p1, void *p2, void *p3)
         
         bool all_healthy = true;
         
+        /* Atomically read current heartbeat values */
+        current_mavlink_heartbeat = atomic_get(&g_health.mavlink_heartbeat);
+        current_sys_mgr_heartbeat = atomic_get(&g_health.sys_mgr_heartbeat);
+        
         /* Check MAVLink thread */
-        if (g_health.mavlink_heartbeat == last_health.mavlink_heartbeat) {
+        if (current_mavlink_heartbeat == last_mavlink_heartbeat) {
             LOG_ERR("[Health] ERROR: MAVLink thread HUNG!");
             all_healthy = false;
         }
         
         /* Check SysMgr thread */
-        if (g_health.sys_mgr_heartbeat == last_health.sys_mgr_heartbeat) {
+        if (current_sys_mgr_heartbeat == last_sys_mgr_heartbeat) {
             LOG_ERR("[Health] ERROR: SysMgr thread HUNG!");
             all_healthy = false;
         }
@@ -68,12 +75,13 @@ void health_thread(void *p1, void *p2, void *p3)
             if (check_count % 10 == 0) {
                 printk("[Health] All threads OK (check #%u)\n", check_count);
                 printk("[Health]   MAVLink: %u, SysMgr: %u\n",
-                       g_health.mavlink_heartbeat,
-                       g_health.sys_mgr_heartbeat);
+                       current_mavlink_heartbeat,
+                       current_sys_mgr_heartbeat);
             }
         }
         
         /* Save current state for next comparison */
-        last_health = g_health;
+        last_mavlink_heartbeat = current_mavlink_heartbeat;
+        last_sys_mgr_heartbeat = current_sys_mgr_heartbeat;
     }
 }

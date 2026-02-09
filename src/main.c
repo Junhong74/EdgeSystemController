@@ -22,7 +22,10 @@ LOG_MODULE_REGISTER(main);
  */
 system_state_t system_state = INIT;
 /* Global System State */
-volatile thread_health_t g_health = {0};
+volatile thread_health_t g_health = {
+    ATOMIC_INIT(0),  /* mavlink_heartbeat */
+    ATOMIC_INIT(0)   /* sys_mgr_heartbeat */
+};
 volatile bool g_system_running = false;
 
 
