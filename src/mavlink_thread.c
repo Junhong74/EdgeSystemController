@@ -66,7 +66,13 @@ void mavlink_thread(void *p1, void *p2, void *p3)
         if (++cmd_counter % 100 == 0) {
             cmd.command = CMD_START;
             cmd.param = 0;
-            k_msgq_put(&sys_cmd_queue, &cmd, K_NO_WAIT);
+            
+            /* Attempt to put command in queue with error handling */
+            if (k_msgq_put(&sys_cmd_queue, &cmd, K_NO_WAIT) != 0) {
+                /* Queue full - log error as commands should not be silently dropped */
+                LOG_ERR("sys_cmd_queue full (capacity=%d) - command 0x%02x dropped", 
+                        SYS_CMD_QUEUE_SIZE, cmd.command);
+            }
         }
 
         
