@@ -56,6 +56,7 @@ void sys_mgr_thread(void *p1, void *p2, void *p3)
             LOG_INF("Received command: type=0x%02x", cmd.command);
 
             system_state_t sys_state = fsm_get_current_state();
+            LOG_DBG("Current system state: %d", (int)sys_state);
 
             switch (cmd.command) {
                 case CMD_START:
