@@ -20,7 +20,7 @@ extern struct k_msgq sys_cmd_queue;
 extern system_state_t system_state;
 
 /* External Global State */
-extern volatile thread_health_t g_health;
+extern thread_health_t g_health;
 extern volatile bool g_system_running;
 
 

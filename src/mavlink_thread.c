@@ -41,7 +41,7 @@ void mavlink_thread(void *p1, void *p2, void *p3)
     
     while (1) {
         /* Update heartbeat */
-        g_health.mavlink_heartbeat++;
+        atomic_inc(&g_health.mavlink_heartbeat);
         
         /* Simulate receiving telemetry from drone controller (50Hz) */
         /* TODO: Replace with actual UART/Serial MAVLink reception */

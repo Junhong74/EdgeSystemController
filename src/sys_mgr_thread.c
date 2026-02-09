@@ -48,7 +48,7 @@ void sys_mgr_thread(void *p1, void *p2, void *p3)
 
     while (1) {
         /* Update heartbeat */
-        g_health.sys_mgr_heartbeat++;
+        atomic_inc(&g_health.sys_mgr_heartbeat);
 
         /* Process commands from other threads */
         ret = k_msgq_get(&sys_cmd_queue, &cmd, K_MSEC(100));

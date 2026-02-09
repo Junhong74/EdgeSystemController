@@ -45,14 +45,18 @@ void health_thread(void *p1, void *p2, void *p3)
         
         bool all_healthy = true;
         
+        /* Take atomic snapshot of all heartbeats */
+        atomic_t mavlink_hb = atomic_get(&g_health.mavlink_heartbeat);
+        atomic_t sys_mgr_hb = atomic_get(&g_health.sys_mgr_heartbeat);
+        
         /* Check MAVLink thread */
-        if (g_health.mavlink_heartbeat == last_health.mavlink_heartbeat) {
+        if (mavlink_hb == atomic_get(&last_health.mavlink_heartbeat)) {
             LOG_ERR("[Health] ERROR: MAVLink thread HUNG!");
             all_healthy = false;
         }
         
         /* Check SysMgr thread */
-        if (g_health.sys_mgr_heartbeat == last_health.sys_mgr_heartbeat) {
+        if (sys_mgr_hb == atomic_get(&last_health.sys_mgr_heartbeat)) {
             LOG_ERR("[Health] ERROR: SysMgr thread HUNG!");
             all_healthy = false;
         }
@@ -70,12 +74,13 @@ void health_thread(void *p1, void *p2, void *p3)
             if (check_count % 10 == 0) {
                 printk("[Health] All threads OK (check #%u)\n", check_count);
                 printk("[Health]   MAVLink: %u, SysMgr: %u\n",
-                       g_health.mavlink_heartbeat,
-                       g_health.sys_mgr_heartbeat);
+                       (uint32_t)mavlink_hb,
+                       (uint32_t)sys_mgr_hb);
             }
         }
         
         /* Save current state for next comparison */
-        last_health = g_health;
+        atomic_set(&last_health.mavlink_heartbeat, mavlink_hb);
+        atomic_set(&last_health.sys_mgr_heartbeat, sys_mgr_hb);
     }
 }
