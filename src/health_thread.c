@@ -11,9 +11,7 @@
 #include "common_types.h"
 #include "ipc_config.h"
 
-#define LOG_LEVEL CONFIG_HEALTH_THREAD_LOG_LEVEL
 LOG_MODULE_REGISTER(health_thread);
-
 /**
  * @brief Health Monitor Thread Main Loop
  * @details
