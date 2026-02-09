@@ -68,9 +68,15 @@ void health_thread(void *p1, void *p2, void *p3)
             /* Trigger error recovery */
             error_cmd.command = CMD_ERROR;
             error_cmd.param = check_count;
-            k_msgq_put(&sys_cmd_queue, &error_cmd, K_NO_WAIT);
             
-            LOG_INF("[Health] Recovery command sent");
+            /* Attempt to put command in queue with error handling */
+            if (k_msgq_put(&sys_cmd_queue, &error_cmd, K_NO_WAIT) != 0) {
+                /* Queue full - log error as error recovery commands should not be silently dropped */
+                LOG_ERR("[Health] sys_cmd_queue full (capacity=%d) - CMD_ERROR dropped! System may not recover from thread failure!", 
+                        SYS_CMD_QUEUE_SIZE);
+            } else {
+                LOG_INF("[Health] Recovery command sent");
+            }
 
         } else {
             /* Periodic status report (every 10 checks = 5 seconds) */
