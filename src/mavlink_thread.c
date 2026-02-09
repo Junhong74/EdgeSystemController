@@ -17,6 +17,10 @@
 #define LOG_LEVEL CONFIG_MAVLINK_THREAD_LOG_LEVEL
 LOG_MODULE_REGISTER(mavlink_thread);
 
+/* Retry parameters for sys_cmd_queue when full */
+#define SYS_CMD_MAX_RETRIES         3
+#define SYS_CMD_RETRY_TIMEOUT_MS   10
+
 /**
  * @brief MAVLink Thread Main Loop
  * @details
@@ -74,22 +78,19 @@ void mavlink_thread(void *p1, void *p2, void *p3)
                 LOG_WRN("sys_cmd_queue full (capacity=%d), retrying command 0x%02x", 
                         SYS_CMD_QUEUE_SIZE, cmd.command);
                 
-                /* Retry with short timeout (up to 3 attempts with 10ms between) */
-                const int max_retries = 3;
-                const k_timeout_t retry_timeout = K_MSEC(10);
-                
-                for (int retry = 0; retry < max_retries && ret != 0; retry++) {
-                    ret = k_msgq_put(&sys_cmd_queue, &cmd, retry_timeout);
-                    if (ret != 0 && retry < max_retries - 1) {
+                /* Retry with short timeout to allow sys_mgr to drain queue */
+                for (int retry = 0; retry < SYS_CMD_MAX_RETRIES && ret != 0; retry++) {
+                    ret = k_msgq_put(&sys_cmd_queue, &cmd, K_MSEC(SYS_CMD_RETRY_TIMEOUT_MS));
+                    if (ret != 0 && retry < SYS_CMD_MAX_RETRIES - 1) {
                         LOG_WRN("sys_cmd_queue retry %d/%d failed for command 0x%02x",
-                                retry + 1, max_retries, cmd.command);
+                                retry + 1, SYS_CMD_MAX_RETRIES, cmd.command);
                     }
                 }
                 
                 /* If all retries failed, log critical error */
                 if (ret != 0) {
                     LOG_ERR("sys_cmd_queue: command 0x%02x DROPPED after %d retries - system may be unresponsive",
-                            cmd.command, max_retries);
+                            cmd.command, SYS_CMD_MAX_RETRIES);
                 }
             }
         }
