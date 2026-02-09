@@ -27,8 +27,7 @@ LOG_MODULE_REGISTER(health_thread);
  */
 void health_thread(void *p1, void *p2, void *p3)
 {
-    static atomic_val_t last_mavlink_hb = 0;
-    static atomic_val_t last_sys_mgr_hb = 0;
+    static thread_health_t last_health = {0};
     sys_command_t error_cmd;
     uint32_t check_count = 0;
     
@@ -84,7 +83,6 @@ void health_thread(void *p1, void *p2, void *p3)
         }
         
         /* Save current state for next comparison */
-        last_mavlink_hb = mavlink_hb;
-        last_sys_mgr_hb = sys_mgr_hb;
+        last_health = g_health;
     }
 }
