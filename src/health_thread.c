@@ -27,8 +27,8 @@ LOG_MODULE_REGISTER(health_thread);
  */
 void health_thread(void *p1, void *p2, void *p3)
 {
-    static atomic_t last_mavlink_hb = 0;
-    static atomic_t last_sys_mgr_hb = 0;
+    static atomic_val_t last_mavlink_hb = 0;
+    static atomic_val_t last_sys_mgr_hb = 0;
     sys_command_t error_cmd;
     uint32_t check_count = 0;
     
@@ -47,8 +47,8 @@ void health_thread(void *p1, void *p2, void *p3)
         bool all_healthy = true;
         
         /* Take atomic snapshot of all heartbeats */
-        atomic_t mavlink_hb = atomic_get(&g_health.mavlink_heartbeat);
-        atomic_t sys_mgr_hb = atomic_get(&g_health.sys_mgr_heartbeat);
+        atomic_val_t mavlink_hb = atomic_get(&g_health.mavlink_heartbeat);
+        atomic_val_t sys_mgr_hb = atomic_get(&g_health.sys_mgr_heartbeat);
         
         /* Check MAVLink thread */
         if (mavlink_hb == last_mavlink_hb) {
