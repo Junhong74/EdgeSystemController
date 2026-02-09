@@ -22,7 +22,7 @@ LOG_MODULE_REGISTER(main);
  */
 system_state_t system_state = INIT;
 /* Global System State */
-volatile thread_health_t g_health = {0};
+thread_health_t g_health = {0};
 volatile bool g_system_running = false;
 
 

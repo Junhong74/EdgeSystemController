@@ -27,7 +27,8 @@ LOG_MODULE_REGISTER(health_thread);
  */
 void health_thread(void *p1, void *p2, void *p3)
 {
-    static thread_health_t last_health = {0};
+    static atomic_val_t last_mavlink_hb = 0;
+    static atomic_val_t last_sys_mgr_hb = 0;
     sys_command_t error_cmd;
     uint32_t check_count = 0;
     
@@ -75,14 +76,15 @@ void health_thread(void *p1, void *p2, void *p3)
         } else {
             /* Periodic status report (every 10 checks = 5 seconds) */
             if (check_count % 10 == 0) {
-                LOG_INF("[Health] All threads OK (check #%u)", check_count);
-                LOG_INF("[Health]   MAVLink: %u, SysMgr: %u",
-                       g_health.mavlink_heartbeat,
-                       g_health.sys_mgr_heartbeat);
+                printk("[Health] All threads OK (check #%u)\n", check_count);
+                printk("[Health]   MAVLink: %u, SysMgr: %u\n",
+                       (uint32_t)mavlink_hb,
+                       (uint32_t)sys_mgr_hb);
             }
         }
         
         /* Save current state for next comparison */
-        last_health = g_health;
+        last_mavlink_hb = mavlink_hb;
+        last_sys_mgr_hb = sys_mgr_hb;
     }
 }
