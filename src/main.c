@@ -70,9 +70,9 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
  */
 int main(void)
 {
-	printk("  Edge AI Vision System Controller\n");
-	printk("  Platform: STM32F767ZI\n");
-	printk("  Threads: 6 (SysMgr, MAVLink, AI, Video, GCS, Health)\n\n");
+	LOG_INF("  Edge AI Vision System Controller\n");
+	LOG_INF("  Platform: STM32F767ZI\n");
+	LOG_INF("  Threads: 6 (SysMgr, MAVLink, AI, Video, GCS, Health)\n\n");
 
 	/* All threads are auto-started by K_THREAD_DEFINE */
 	/* Main execution continues in main_thread() */
@@ -123,7 +123,7 @@ int main(void)
 		}
 
 		led_state = !led_state;
-		printf("LED state: %s\n", led_state ? "ON" : "OFF");
+		LOG_INF("LED state: %s", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
 	}
 
