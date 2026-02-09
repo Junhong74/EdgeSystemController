@@ -29,6 +29,11 @@ system_state_t fsm_get_current_state(void)
     return current_state;
 }
 
+/**
+ * @brief 
+ * @param  
+ * @return 
+ */
 system_state_t fsm_get_previous_state(void)
 {
     return previous_state;

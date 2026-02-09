@@ -7,27 +7,24 @@
 #define IPC_CONFIG_H
 
 #include <zephyr/kernel.h>
+
 #include "common_types.h"
 #include "system_config.h"
+#include "device_fsm.h"
 
-/**
- * MESSAGE QUEUE DECLARATIONS
- */
+/* MESSAGE QUEUE DECLARATIONS */
+extern struct k_msgq mavlink_tx_queue;
 extern struct k_msgq sys_cmd_queue;
 
-/**
- * GLOBAL STATE
- */
+/* GLOBAL STATE */
 extern system_state_t system_state;
-extern volatile bool system_running;
-extern thread_health_t thread_health[NUM_THREADS];
 
-/**
- * UTILITY FUNCTIONS
- */
+/* External Global State */
+extern volatile thread_health_t g_health;
+extern volatile bool g_system_running;
+
+
+/* UTILITY FUNCTIONS */
 void update_thread_heartbeat(uint8_t thread_id);
-void set_system_state(system_state_t new_state);
-system_state_t get_system_state(void);
-
 
 #endif /* IPC_CONFIG_H */

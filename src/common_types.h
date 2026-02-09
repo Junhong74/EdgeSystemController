@@ -8,42 +8,52 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "system_config.h"
 
 /**
  * COMMAND MESSAGES
  */
+
+/* System Command Types */
+typedef enum {
+    CMD_STOP,
+    CMD_START,
+    CMD_STREAM_START,
+    CMD_STREAM_STOP,
+    CMD_SHUTDOWN,
+    CMD_ERROR
+} system_cmd_t;
+
+/* System Command Structure */
 typedef struct {
-    uint8_t cmd_type;
-    uint32_t param1;
-    uint32_t param2;
-    void *data_ptr;
+    system_cmd_t command;   /* Command type */
+    uint32_t param;         /* Command parameter */
 } sys_command_t;
 
-/* Command Types */
-#define CMD_START           0x01
-#define CMD_STOP            0x02
-#define CMD_STREAM_START    0x03
-#define CMD_STREAM_STOP     0x04
-#define CMD_SHUTDOWN        0x05
-#define CMD_ERROR           0xFF
-
-
-/**
- * THREAD HEALTH
- */
+/* Telemetry Data Structure */
 typedef struct {
-    uint32_t last_heartbeat;
-    uint8_t is_alive;
-    char thread_name[16];
+    float lat;          /* Latitude in degrees */
+    float lon;          /* Longitude in degrees */
+    float alt;          /* Altitude in meters */
+    float roll;         /* Roll angle in degrees */
+    float pitch;        /* Pitch angle in degrees */
+    float yaw;          /* Yaw angle in degrees */
+    uint32_t timestamp; /* System timestamp in ms */
+} telemetry_data_t;
+
+
+/* Thread Heartbeat Structure */
+typedef struct {
+    uint32_t mavlink_heartbeat;
+    uint32_t sys_mgr_heartbeat;
 } thread_health_t;
 
 /* Thread IDs for health monitoring */
 #define THREAD_SYS_MGR  0
 #define THREAD_MAVLINK  1
 #define THREAD_AI       2
-#define THREAD_VIDEO    3
-#define THREAD_GCS      4
-#define THREAD_HEALTH   5
-#define NUM_THREADS     6
+#define THREAD_GCS      3
+#define THREAD_HEALTH   4
+#define NUM_THREADS     5
 
 #endif /* COMMON_TYPES_H_ */

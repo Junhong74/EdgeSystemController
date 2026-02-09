@@ -12,7 +12,7 @@
 #include "device_fsm.h"
 #include "common_types.h"
 #include "ipc_config.h"
-#include "threads.h"
+#include "thread_interface.h"
 
 #define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
 LOG_MODULE_REGISTER(main);
@@ -21,42 +21,36 @@ LOG_MODULE_REGISTER(main);
  * GLOBAL STATE VARIABLES
  */
 system_state_t system_state = INIT;
-volatile bool system_running = true;
+/* Global System State */
+volatile thread_health_t g_health = {0};
+volatile bool g_system_running = false;
 
-thread_health_t thread_health[NUM_THREADS] = {
-    {0, 0, "SysMgr"},
-    {0, 0, "MAVLink"},
-    {0, 0, "AI"},
-    {0, 0, "Video"},
-    {0, 0, "GCS"},
-    {0, 0, "Health"}
-};
 
 /**
  * IPC PRIMITIVES DEFINITIONS
  */
 
 /* Message Queues */
-K_MSGQ_DEFINE(sys_cmd_queue, sizeof(sys_command_t), 10, 4);
-
-
+K_MSGQ_DEFINE(sys_cmd_queue, sizeof(sys_command_t), SYS_CMD_QUEUE_SIZE, 4);
+K_MSGQ_DEFINE(mavlink_tx_queue, sizeof(telemetry_data_t), MAVLINK_TX_QUEUE_SIZE, 4);
 
 /**
  * THREAD DEFINITIONS
  */
-K_THREAD_DEFINE(sys_mgr_tid, SYS_MGR_STACK_SIZE, 
-                sys_mgr_thread, NULL, NULL, NULL,
-                SYS_MGR_PRIORITY, 0, 0);
+/* Define Thread Stacks */
+K_THREAD_STACK_DEFINE(mavlink_stack, MAVLINK_STACK_SIZE);
+K_THREAD_STACK_DEFINE(sys_mgr_stack, SYS_MGR_STACK_SIZE);
+K_THREAD_STACK_DEFINE(health_stack, HEALTH_STACK_SIZE);
 
+/* Thread Control Blocks */
+static struct k_thread mavlink_thread_data;
+static struct k_thread sys_mgr_thread_data;
+static struct k_thread health_thread_data;
 
-/* UTILITY FUNCTIONS IMPLEMENTATION */
-void update_thread_heartbeat(uint8_t thread_id)
-{
-	if (thread_id < NUM_THREADS) {
-		thread_health[thread_id].last_heartbeat = k_uptime_get_32();
-		thread_health[thread_id].is_alive = 1;
-	}
-}
+/* Thread IDs */
+static k_tid_t mavlink_tid;
+static k_tid_t sys_mgr_tid;
+static k_tid_t health_tid;
 
 
 /* 1000 msec = 1 sec */
@@ -82,6 +76,33 @@ int main(void)
 
 	/* All threads are auto-started by K_THREAD_DEFINE */
 	/* Main execution continues in main_thread() */
+    
+	/* Create MAVLink Thread */
+    mavlink_tid = k_thread_create(&mavlink_thread_data, mavlink_stack,
+                                   K_THREAD_STACK_SIZEOF(mavlink_stack),
+                                   mavlink_thread,
+                                   NULL, NULL, NULL,
+                                   MAVLINK_PRIORITY, 0, K_NO_WAIT);
+    k_thread_name_set(mavlink_tid, "mavlink");
+    LOG_INF("Created: MAVLink Thread (Priority %d)", MAVLINK_PRIORITY);
+    
+    /* Create SysMgr Thread */
+    sys_mgr_tid = k_thread_create(&sys_mgr_thread_data, sys_mgr_stack,
+                                  K_THREAD_STACK_SIZEOF(sys_mgr_stack),
+                                  sys_mgr_thread,
+                                  NULL, NULL, NULL,
+                                  SYS_MGR_PRIORITY, 0, K_NO_WAIT);
+    k_thread_name_set(sys_mgr_tid, "sys_mgr");
+    LOG_INF("Created: SysMgr Thread (Priority %d)", SYS_MGR_PRIORITY);
+    
+    /* Create Health Monitor Thread */
+    health_tid = k_thread_create(&health_thread_data, health_stack,
+                                  K_THREAD_STACK_SIZEOF(health_stack),
+                                  health_thread,
+                                  NULL, NULL, NULL,
+                                  HEALTH_PRIORITY, 0, K_NO_WAIT);
+    k_thread_name_set(health_tid, "health");
+    LOG_INF("Created: Health Thread (Priority %d)", HEALTH_PRIORITY);
 
 	int ret;
 	bool led_state = true;
