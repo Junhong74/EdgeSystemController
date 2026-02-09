@@ -1,5 +1,5 @@
-#ifndef DEVICE_SM_H_
-#define DEVICE_SM_H_
+#ifndef DEVICE_FSM_H_
+#define DEVICE_FSM_H_
 
 /* List of end node states */
 typedef enum {
@@ -10,7 +10,7 @@ typedef enum {
     DEGRADED,
     SHUTDOWN,
     FAULT
-} state_t;
+} system_state_t;
 
 // Define events
 typedef enum {
@@ -25,11 +25,11 @@ typedef enum {
     EVENT_STREAM_RECOVERED,
     EVENT_FAULT_DETECTED,
     EVENT_FAULT_RECOVERED
-} event_t;
+} system_event_t;
 
 void fsm_init(void);
-state_t fsm_get_current_state(void);
-state_t fsm_get_previous_state(void);
-void fsm_event_handler(event_t event);
+system_state_t fsm_get_current_state(void);
+system_state_t fsm_get_previous_state(void);
+void fsm_event_handler(system_event_t event);
 
-#endif /* DEVICE_SM_H_ */
+#endif /* DEVICE_FSM_H_ */

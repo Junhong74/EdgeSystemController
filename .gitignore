@@ -2,5 +2,11 @@
 *.swp
 *~
 
+/.cache/
+/.vscode/
+
 # build
 /build*/
+
+# codeql
+_codeql_detected_source_root

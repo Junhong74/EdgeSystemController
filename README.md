@@ -11,7 +11,13 @@ The EdgeAI - System Controller serves as the Supervisor Middleware for autonomou
 * MCU supported by Zephyr RTOS - STM32 NUCLEO-F767ZI (Cortex-M7 @ 216MHz).
 
 Interfaces:
+* Ethernet compliant with IEEE-802.3-2002
+* USB OTG or full-speed device
+* 3 user LEDs
+* 2 user and reset push-buttons
+* 32.768 kHz crystal oscillator
 
+capability: mass storage, virtual COM port and debug port.
 Optional: In-circuit debug/programmer interface
 
 

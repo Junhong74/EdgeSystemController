@@ -1,0 +1,33 @@
+/*
+ * Device Tree Overlay for STM32F767ZI Nucleo Board
+ * Edge AI System Controller
+ */
+
+
+/ {
+	chosen {
+		zephyr,console = &usart3;
+		zephyr,shell-uart = &usart3;
+	};
+
+	aliases {
+
+	};
+};
+
+/* UART3 for console/debug */
+&usart3 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+/* UART2 for MAVLink communication */
+&usart2 {
+	status = "okay";
+	current-speed = <57600>;
+};
+
+&timers2 {
+
+};
+
