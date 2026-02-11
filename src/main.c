@@ -1,10 +1,8 @@
-/*
+/**
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stdio.h>
 #include <zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
 #include <inttypes.h>
 #include <zephyr/logging/log.h>
 
@@ -52,22 +50,8 @@ static k_tid_t mavlink_tid;
 static k_tid_t sys_mgr_tid;
 static k_tid_t health_tid;
 
-
-/* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   1000
 
-/* The devicetree node identifier for the "led0" alias. */
-#define LED0_NODE DT_ALIAS(led0)
-
-/*
- * A build error on this line means your board is unsupported.
- * See the sample documentation for information on how to fix this.
- */
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-
-/**
- * MAIN ENTRY POINT
- */
 int main(void)
 {
 	LOG_INF("  Edge AI Vision System Controller\n");
@@ -75,8 +59,6 @@ int main(void)
 	LOG_INF("  Threads: 6 (SysMgr, MAVLink, AI, Video, GCS, Health)\n\n");
 
 	/* All threads are auto-started by K_THREAD_DEFINE */
-	/* Main execution continues in main_thread() */
-    
 	/* Create MAVLink Thread */
     mavlink_tid = k_thread_create(&mavlink_thread_data, mavlink_stack,
                                    K_THREAD_STACK_SIZEOF(mavlink_stack),
@@ -104,26 +86,7 @@ int main(void)
     k_thread_name_set(health_tid, "health");
     LOG_INF("Created: Health Thread (Priority %d)", HEALTH_PRIORITY);
 
-	int ret;
-	bool led_state = true;
-
-	if (!gpio_is_ready_dt(&led)) {
-		return 0;
-	}
-
-	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-	if (ret < 0) {
-		return 0;
-	}
-
 	while (1) {
-		ret = gpio_pin_toggle_dt(&led);
-		if (ret < 0) {
-			return 0;
-		}
-
-		led_state = !led_state;
-		LOG_INF("LED state: %s", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
 	}
 
