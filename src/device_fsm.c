@@ -1,5 +1,7 @@
-// State machine includes
-//#include <zephyr/smf.h>
+/**
+ * @file device_fsm.c
+ * @brief Internal device finite state machine implementation
+ */ 
 #include <zephyr/logging/log.h>
 
 #include "device_fsm.h"
@@ -11,8 +13,7 @@ static system_state_t current_state = INIT;
 static system_state_t previous_state = INIT;
 
 /**
- * @brief 
- * @param  
+ * @brief State machine initialization
  */
 void fsm_init(void)
 {
@@ -20,9 +21,8 @@ void fsm_init(void)
 }
 
 /**
- * @brief 
- * @param  
- * @return 
+ * @brief Get the current state of the state machine
+ * @return The current system state
  */
 system_state_t fsm_get_current_state(void)
 {
@@ -30,9 +30,9 @@ system_state_t fsm_get_current_state(void)
 }
 
 /**
- * @brief 
- * @param  
- * @return 
+ * @brief Get the previous state of the state machine
+ * @param  NIL
+ * @return The previous system state
  */
 system_state_t fsm_get_previous_state(void)
 {

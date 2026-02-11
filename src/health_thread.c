@@ -5,6 +5,7 @@
  */
 
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
 #include "system_config.h"
@@ -13,6 +14,10 @@
 
 #define LOG_LEVEL CONFIG_HEALTH_THREAD_LOG_LEVEL
 LOG_MODULE_REGISTER(health_thread);
+
+#define LED0_NODE DT_ALIAS(led0)
+
+static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 /**
  * @brief Health Monitor Thread Main Loop
@@ -37,12 +42,31 @@ void health_thread(void *p1, void *p2, void *p3)
     
     LOG_INF("[Health] Thread started");
     LOG_INF("[Health] Monitoring period: %dms", HEALTH_CHECK_PERIOD_MS);
-    
+
+    int ret;
+	bool led_state = true;
+
+	if (!gpio_is_ready_dt(&led)) {
+		LOG_ERR("LED device not ready");
+	} else {
+        ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+        if (ret < 0) {
+            LOG_ERR("Error configuring LED pin");
+        }
+    }
+
     while (1) {
         /* Wait for health check interval */
         k_msleep(HEALTH_CHECK_PERIOD_MS);
         check_count++;
         
+		ret = gpio_pin_toggle_dt(&led);
+		if (ret < 0) {
+			LOG_ERR("Error toggling LED pin");
+		}
+		led_state = !led_state;
+
+
         bool all_healthy = true;
         
         // Atomic snapshot ensures consistent view of all counters
@@ -71,12 +95,11 @@ void health_thread(void *p1, void *p2, void *p3)
             k_msgq_put(&sys_cmd_queue, &error_cmd, K_NO_WAIT);
             
             LOG_INF("[Health] Recovery command sent");
-
         } else {
             /* Periodic status report (every 10 checks = 5 seconds) */
             if (check_count % 10 == 0) {
-                printk("[Health] All threads OK (check #%u)\n", check_count);
-                printk("[Health]   MAVLink: %u, SysMgr: %u\n",
+                LOG_INF("[Health] All threads OK (check #%u)", check_count);
+                LOG_INF("[Health]   MAVLink: %u, SysMgr: %u",
                        (uint32_t)mavlink_hb,
                        (uint32_t)sys_mgr_hb);
             }

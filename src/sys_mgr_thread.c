@@ -103,6 +103,6 @@ void sys_mgr_thread(void *p1, void *p2, void *p3)
             }
         }
 
-        k_sleep(K_MSEC(200)); // Low-frequency supervisory loop
+        k_msleep(SYSMGR_UPDATE_RATE_MS); // Low-frequency supervisory loop
     }
 }

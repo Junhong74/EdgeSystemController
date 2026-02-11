@@ -1,3 +1,8 @@
+/**
+ * @file device_fsm.h
+ * @brief Internal device finite state machine definitions
+ */
+
 #ifndef DEVICE_FSM_H_
 #define DEVICE_FSM_H_
 
